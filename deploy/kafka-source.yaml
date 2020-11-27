@@ -1,0 +1,17 @@
+apiVersion: sources.knative.dev/v1alpha1
+kind: KafkaSource
+metadata:
+  name: fritzbox-dashboard-kafka-source
+  labels:
+    app.kubernetes.io/part-of: fritzbox-dashboard
+spec:
+  consumerGroup: fritzbox-dashboard
+  bootstrapServers:
+    - kafka-eventing-kafka-bootstrap.knative-eventing.svc:9092
+  topics:
+    - knative-messaging-kafka.drogue-iot.iot-channel
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: fritzbox-influxdb-pusher
