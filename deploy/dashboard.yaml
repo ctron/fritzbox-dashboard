@@ -40,7 +40,7 @@ data:
           "fillGradient": 0,
           "gridPos": {
             "h": 10,
-            "w": 12,
+            "w": 18,
             "x": 0,
             "y": 0
           },
@@ -217,7 +217,7 @@ data:
           "gridPos": {
             "h": 5,
             "w": 3,
-            "x": 12,
+            "x": 18,
             "y": 0
           },
           "id": 4,
@@ -301,7 +301,7 @@ data:
           "gridPos": {
             "h": 5,
             "w": 3,
-            "x": 15,
+            "x": 21,
             "y": 0
           },
           "id": 7,
@@ -396,7 +396,7 @@ data:
           "gridPos": {
             "h": 5,
             "w": 3,
-            "x": 12,
+            "x": 18,
             "y": 5
           },
           "id": 5,
@@ -481,7 +481,7 @@ data:
           "gridPos": {
             "h": 5,
             "w": 3,
-            "x": 15,
+            "x": 21,
             "y": 5
           },
           "id": 8,
@@ -572,5 +572,5 @@ data:
       "timezone": "",
       "title": "Network",
       "uid": "HVrdwS0Gz",
-      "version": 2
+      "version": 3
     }
