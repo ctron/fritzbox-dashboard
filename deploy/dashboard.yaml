@@ -73,7 +73,7 @@ data:
               "groupBy": [
                 {
                   "params": [
-                      "$interval"
+                      "$__interval"
                   ],
                   "type": "time"
                 }
@@ -110,7 +110,7 @@ data:
               "groupBy": [
                 {
                   "params": [
-                      "$interval"
+                      "$__interval"
                   ],
                   "type": "time"
                 }
@@ -241,7 +241,7 @@ data:
               "groupBy": [
                 {
                   "params": [
-                      "$interval"
+                      "$__interval"
                   ],
                   "type": "time"
                 }
