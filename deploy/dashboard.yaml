@@ -339,6 +339,8 @@ data:
               "measurement": "fritzbox",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT SUM(diffval) FROM (SELECT NON_NEGATIVE_DIFFERENCE(bytes_received) AS diffval FROM fritzbox WHERE $timeFilter FILL(previous))",
+              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -519,6 +521,8 @@ data:
               "measurement": "fritzbox",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT SUM(diffval) FROM (SELECT NON_NEGATIVE_DIFFERENCE(bytes_sent) AS diffval FROM fritzbox WHERE $timeFilter FILL(previous))",
+              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -572,5 +576,5 @@ data:
       "timezone": "",
       "title": "Network",
       "uid": "HVrdwS0Gz",
-      "version": 3
+      "version": 7
     }
