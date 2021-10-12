@@ -1,0 +1,42 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: fritzbox-migrate-schema
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: docker.io/liquibase/liquibase:4.5
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: admin.username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: admin.password
+            - name: DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: databaseName
+          args:
+            - --url="jdbc:postgresql://timescaledb:5432/$(DATABASE)"
+            - --changeLogFile=/etc/schema/changelog.yaml
+            - --username=$(USERNAME)
+            - --password=$(PASSWORD)
+            - update
+          volumeMounts:
+            - mountPath: /etc/schema
+              name: schema
+      volumes:
+        - name: schema
+          configMap:
+            name: fritzbox-schema
