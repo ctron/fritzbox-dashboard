@@ -40,4 +40,4 @@ spec:
     ref:
       apiVersion: v1
       kind: Service
-      name: fritzbox-influxdb-pusher
+      name: fritzbox-timescaledb-pusher

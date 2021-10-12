@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: fritzbox-influxdb-pusher
+  name: fritzbox-timescaledb-pusher
   annotations:
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"timescaledb"}]'
   labels:
