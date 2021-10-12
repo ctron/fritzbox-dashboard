@@ -37,6 +37,7 @@ spec:
                   key: databaseName
           args:
             - --url="jdbc:postgresql://timescaledb:5432/$(DATABASE)"
+            - --driver=org.postgresql.Driver
             - --changeLogFile=/etc/schema/changelog.yaml
             - --username=$(USERNAME)
             - --password=$(PASSWORD)
