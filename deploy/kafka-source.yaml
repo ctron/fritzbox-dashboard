@@ -13,7 +13,7 @@ spec:
     - drogue-iot-kafka-bootstrap:9092
 
   topics:
-    - iot-events
+    - events-ctron
 
   sink:
     ref:
