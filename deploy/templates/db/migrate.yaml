@@ -41,6 +41,7 @@ spec:
             - --changeLogFile=/etc/schema/changelog.yaml
             - --username=$(USERNAME)
             - --password=$(PASSWORD)
+            - --log-level=debug
             - update
           volumeMounts:
             - mountPath: /etc/schema
