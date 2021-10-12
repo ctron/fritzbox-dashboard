@@ -9,7 +9,8 @@ spec:
 
   consumerGroup: fritzbox-dashboard
 
-  bootstrapServers: {{ .Values.kafka.bootstrapServers | toYaml }}
+  bootstrapServers:
+    {{ .Values.kafka.bootstrapServers | toYaml | nindent 4 }}
 
   net:
     sasl:
