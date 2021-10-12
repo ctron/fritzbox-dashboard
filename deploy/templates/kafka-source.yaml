@@ -28,6 +28,7 @@ spec:
           name: drogue-iot-source-secret
           key: password
     tls:
+      enable: true
       caCert: {}
       cert: {}
       key: {}
