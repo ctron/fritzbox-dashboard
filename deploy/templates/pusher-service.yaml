@@ -23,14 +23,14 @@ spec:
               value: timescaledb
             - name: POSTGRESQL__CONNECTION__USER
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: timescaledb-secret
-                  key: adminUser
+                  key: admin.username
             - name: POSTGRESQL__CONNECTION__PASSWORD
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: timescaledb-secret
-                  key: adminPassword
+                  key: admin.password
             - name: POSTGRESQL__CONNECTION__DBNAME
               valueFrom:
                 configMapKeyRef:
@@ -41,7 +41,7 @@ spec:
             - name: FIELD_BYTES_SENT
               value: $.bytes_sent
             - name: TAG_DEVICE_ID
-              value: $.device_id
+              value: $.device
           resources:
             limits:
               memory: 64Mi
