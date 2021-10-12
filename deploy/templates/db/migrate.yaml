@@ -5,9 +5,15 @@ metadata:
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
+
 spec:
+  backoffLimit: 1000
+  completions: 1
+  parallelism: 1
+
   template:
     spec:
+      restartPolicy: OnFailure
       containers:
         - name: migrate
           image: docker.io/liquibase/liquibase:4.5
