@@ -1,10 +1,9 @@
-{{ if false }}
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: fritzbox-influxdb-pusher
   annotations:
-    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"influxdb"}]'
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"timescaledb"}]'
   labels:
     app.kubernetes.io/part-of: fritzbox-dashboard
     networking.knative.dev/visibility: cluster-local
@@ -12,29 +11,31 @@ spec:
   template:
     spec:
       containers:
-        - image: ghcr.io/drogue-iot/influxdb-pusher:0.4.0
+        - image: ghcr.io/drogue-iot/postgresql-pusher:0.1.0
           env:
             - name: RUST_LOG
               value: info
-            - name: INFLUXDB_URI
-              value: http://influxdb:8086
-            - name: INFLUXDB_DATABASE
+            - name: POSTGRESQL__TABLE
+              value: traffic
+            - name: POSTGRESQL__TIME_COLUMN
+              value: time
+            - name: POSTGRESQL__CONNECTION__HOST
+              value: timescaledb
+            - name: POSTGRESQL__CONNECTION__USER
               valueFrom:
                 configMapKeyRef:
-                  name: influxdb-config
+                  name: timescaledb-secret
+                  key: adminUser
+            - name: POSTGRESQL__CONNECTION__PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: timescaledb-secret
+                  key: adminPassword
+            - name: POSTGRESQL__CONNECTION__DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: timescaledb-config
                   key: databaseName
-            - name: INFLUXDB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secret
-                  key: app.username
-            - name: INFLUXDB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secret
-                  key: app.password
-            - name: INFLUXDB_TABLE
-              value: fritzbox
             - name: FIELD_BYTES_RECEIVED
               value: $.bytes_received
             - name: FIELD_BYTES_SENT
@@ -44,4 +45,3 @@ spec:
           resources:
             limits:
               memory: 64Mi
-{{- end }}
