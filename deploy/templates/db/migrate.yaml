@@ -23,17 +23,17 @@ spec:
             - name: USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: timescaledb-secret
                   key: admin.username
             - name: PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: timescaledb-secret
                   key: admin.password
             - name: DATABASE
               valueFrom:
                 configMapKeyRef:
-                  name: postgres-config
+                  name: timescaledb-config
                   key: databaseName
           args:
             - --url="jdbc:postgresql://timescaledb:5432/$(DATABASE)"
