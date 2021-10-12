@@ -1,0 +1,7 @@
+apiVersion: v2
+name: fritzbox-dashboard
+description: Network dashboard
+
+type: application
+
+version: 0.1.0

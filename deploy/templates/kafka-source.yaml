@@ -1,0 +1,41 @@
+apiVersion: sources.knative.dev/v1alpha1
+kind: KafkaSource
+metadata:
+  name: fritzbox-dashboard-kafka-source
+  labels:
+    app.kubernetes.io/part-of: fritzbox-dashboard
+
+spec:
+
+  consumerGroup: fritzbox-dashboard
+
+  bootstrapServers: {{ .Values.kafka.bootstrapServers | toYaml }}
+
+  net:
+    sasl:
+      enable: true
+      type:
+        secretKeyRef:
+          name: drogue-iot-source-secret
+          key: mechanism
+      user:
+        secretKeyRef:
+          name: drogue-iot-source-secret
+          key: user
+      password:
+        secretKeyRef:
+          name: drogue-iot-source-secret
+          key: password
+    tls:
+      caCert: {}
+      cert: {}
+      key: {}
+
+  topics:
+    - {{ .Values.kafka.topic.name | quote }}
+
+  sink:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: fritzbox-influxdb-pusher

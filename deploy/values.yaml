@@ -1,0 +1,10 @@
+kafka:
+  bootstrapServers:
+    - drogue-iot-kafka-bootstrap-drogue-iot.apps.wonderful.iot-playground.org:443
+  topic:
+    name: events-ctron
+    auth:
+      enabled: true
+      mechanism: SCRAM-SHA-512
+      username: ""
+      password: ""
