@@ -38,7 +38,7 @@ spec:
           args:
             - --url=jdbc:postgresql://timescaledb:5432/$(DATABASE)?ssl=false
             - --driver=org.postgresql.Driver
-            - --changeLogFile=/etc/schema/changelog.yaml
+            - --changeLogFile=/etc/schema/changelog.sql
             - --username=$(USERNAME)
             - --password=$(PASSWORD)
             - --log-level=debug
