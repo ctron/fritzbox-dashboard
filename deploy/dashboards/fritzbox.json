@@ -8,6 +8,12 @@
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
         "type": "dashboard"
       }
     ]
@@ -19,51 +25,180 @@
   "links": [],
   "panels": [
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "IoT",
+      "datasource": "TimescaleDB",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 0,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_avg"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rx_max"
+            },
+            "properties": [
+              {
+                "id": "custom.fillBelowTo",
+                "value": "rx_min"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_avg"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tx_max"
+            },
+            "properties": [
+              {
+                "id": "custom.fillBelowTo",
+                "value": "tx_min"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/(min|max)/"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
-        "h": 10,
+        "h": 18,
         "w": 18,
         "x": 0,
         "y": 0
       },
-      "hiddenSeries": false,
-      "id": 2,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": true,
-        "min": true,
-        "show": true,
-        "total": false,
-        "values": true
+      "id": 10,
+      "interval": "30s",
+      "maxDataPoints": null,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "percentage": false,
-      "pluginVersion": "7.1.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.1.1",
       "targets": [
         {
           "alias": "Bytes Received",
+          "format": "time_series",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
           "groupBy": [
             {
               "params": [
@@ -73,8 +208,11 @@
             }
           ],
           "measurement": "fritzbox",
+          "metricColumn": "none",
           "orderByTime": "ASC",
           "policy": "default",
+          "rawQuery": true,
+          "rawSql": "SELECT\n   v.time as time,\n  avg(v.bytes_per_second)*-1 as \"tx_avg\",\n  min(v.bytes_per_second)*-1 as \"tx_min\",\n  max(v.bytes_per_second)*-1 as \"tx_max\"\n\nFROM ( SELECT\n  $__timeGroup(d.time, $__interval),\n  avg(d.bytes_per_second) OVER(ORDER BY d.time ROWS BETWEEN 10 PRECEDING AND CURRENT ROW) as bytes_per_second\n\nFROM (SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_sent >= lag(bytes_sent) OVER w\n        THEN bytes_sent - lag(bytes_sent) OVER w\n      WHEN lag(bytes_sent) OVER w IS NULL THEN NULL\n      ELSE bytes_sent\n    END\n  )  / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time\n) as d\n) as v\ngroup by time\norder by time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -83,107 +221,73 @@
                 "params": [
                   "bytes_received"
                 ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
+                "type": "column"
               },
               {
                 "params": [
-                  "10s"
+                  "variance"
                 ],
-                "type": "non_negative_derivative"
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "bytes_received"
+                ],
+                "type": "alias"
               }
             ]
           ],
-          "tags": []
+          "table": "traffic",
+          "tags": [],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         },
         {
-          "alias": "Bytes Sent",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            }
-          ],
-          "measurement": "fritzbox",
-          "orderByTime": "ASC",
-          "policy": "default",
+          "format": "time_series",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n   v.time as time,\n  avg(v.bytes_per_second) as \"rx_avg\",\n  min(v.bytes_per_second) as \"rx_min\",\n  max(v.bytes_per_second) as \"rx_max\"\n\nFROM ( SELECT\n  $__timeGroup(d.time, $__interval),\n  avg(d.bytes_per_second) OVER(ORDER BY d.time ROWS BETWEEN 10 PRECEDING AND CURRENT ROW) as bytes_per_second\n\nFROM (SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_sent\n    END\n  )  / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time\n) as d\n) as v\ngroup by time\norder by time",
           "refId": "B",
-          "resultFormat": "time_series",
           "select": [
             [
               {
                 "params": [
-                  "bytes_sent"
+                  "bytes_received"
                 ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
-              },
-              {
-                "params": [
-                  "10s"
-                ],
-                "type": "non_negative_derivative"
+                "type": "column"
               }
             ]
           ],
-          "tags": []
+          "table": "traffic",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
-      "timeRegions": [],
       "timeShift": null,
       "title": "Traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "Bps",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
-      "datasource": "IoT",
+      "datasource": "TimescaleDB",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "max": 104857600,
           "min": 0,
@@ -215,6 +319,7 @@
         "y": 0
       },
       "id": 4,
+      "interval": null,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -227,11 +332,22 @@
           "fields": "",
           "values": false
         },
+        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.5",
+      "pluginVersion": "8.1.1",
       "targets": [
         {
+          "format": "time_series",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
           "groupBy": [
             {
               "params": [
@@ -241,8 +357,11 @@
             }
           ],
           "measurement": "fritzbox",
+          "metricColumn": "none",
           "orderByTime": "ASC",
           "policy": "default",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\nFROM traffic\nWHERE time > NOW() - INTERVAL '1 day'\nWINDOW w AS (ORDER BY time)\nORDER BY time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -251,33 +370,44 @@
                 "params": [
                   "bytes_received"
                 ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
+                "type": "column"
               },
               {
                 "params": [
-                  "10s"
+                  "avg"
                 ],
-                "type": "non_negative_derivative"
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "bytes_received"
+                ],
+                "type": "alias"
               }
             ]
           ],
-          "tags": []
+          "table": "traffic",
+          "tags": [],
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
-      "timeFrom": null,
+      "timeFrom": "1h",
       "timeShift": null,
       "title": "Download",
       "type": "stat"
     },
     {
-      "datasource": "IoT",
+      "datasource": "TimescaleDB",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -311,11 +441,22 @@
           "fields": "",
           "values": false
         },
+        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.5",
+      "pluginVersion": "8.1.1",
       "targets": [
         {
+          "format": "time_series",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
           "groupBy": [
             {
               "params": [
@@ -331,10 +472,12 @@
             }
           ],
           "measurement": "fritzbox",
+          "metricColumn": "none",
           "orderByTime": "ASC",
           "policy": "default",
           "query": "SELECT SUM(diffval) FROM (SELECT NON_NEGATIVE_DIFFERENCE(bytes_received) AS diffval FROM fritzbox WHERE $timeFilter FILL(previous))",
           "rawQuery": true,
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) AS \"bytes\"\n  FROM traffic\n  WHERE time > NOW() - INTERVAL '30 days'\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -343,15 +486,33 @@
                 "params": [
                   "bytes_received"
                 ],
-                "type": "field"
+                "type": "column"
               },
               {
-                "params": [],
-                "type": "max"
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "bytes_received"
+                ],
+                "type": "alias"
               }
             ]
           ],
-          "tags": []
+          "table": "traffic",
+          "tags": [],
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
       "timeFrom": "30d",
@@ -360,11 +521,10 @@
       "type": "stat"
     },
     {
-      "datasource": "IoT",
+      "datasource": "TimescaleDB",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "max": 41943040,
           "min": 0,
@@ -408,11 +568,22 @@
           "fields": "",
           "values": false
         },
+        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.5",
+      "pluginVersion": "8.1.1",
       "targets": [
         {
+          "format": "time_series",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
           "groupBy": [
             {
               "params": [
@@ -422,8 +593,11 @@
             }
           ],
           "measurement": "fritzbox",
+          "metricColumn": "none",
           "orderByTime": "ASC",
           "policy": "default",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_sent >= lag(bytes_sent) OVER w\n        THEN bytes_sent - lag(bytes_sent) OVER w\n      WHEN lag(bytes_sent) OVER w IS NULL THEN NULL\n      ELSE bytes_sent\n    END\n  ) / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\nFROM traffic\nWHERE time > NOW() - INTERVAL '1 day'\nWINDOW w AS (ORDER BY time)\nORDER BY time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -432,24 +606,36 @@
                 "params": [
                   "bytes_sent"
                 ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
+                "type": "column"
               },
               {
                 "params": [
-                  "10s"
+                  "avg"
                 ],
-                "type": "non_negative_derivative"
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "alias"
               }
             ]
           ],
-          "tags": []
+          "table": "traffic",
+          "tags": [],
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
-      "timeFrom": null,
+      "timeFrom": "1h",
       "timeShift": null,
       "title": "Upload",
       "type": "stat"
@@ -459,7 +645,6 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -493,9 +678,10 @@
           "fields": "",
           "values": false
         },
+        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.5",
+      "pluginVersion": "8.1.1",
       "targets": [
         {
           "groupBy": [
@@ -540,17 +726,161 @@
       "timeShift": null,
       "title": "Total Sent",
       "type": "stat"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "TimescaleDB",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 18,
+        "x": 0,
+        "y": 18
+      },
+      "hiddenSeries": false,
+      "id": 2,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": true,
+        "min": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.1.1",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Bytes Received",
+          "format": "time_series",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            }
+          ],
+          "measurement": "fritzbox",
+          "metricColumn": "none",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_received"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "variance"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "bytes_received"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "traffic",
+          "tags": [],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Traffic",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 26,
+  "schemaVersion": 30,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -568,7 +898,7 @@
     ]
   },
   "timezone": "",
-  "title": "Network",
-  "uid": "HVrdwS0Gz",
+  "title": "Network Copy",
+  "uid": "VEYicjv7k",
   "version": 7
 }
