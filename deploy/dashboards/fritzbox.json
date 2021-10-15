@@ -182,7 +182,7 @@
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi"
         }
       },
       "pluginVersion": "8.1.1",
@@ -436,7 +436,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "sum"
           ],
           "fields": "",
           "values": false
@@ -477,7 +477,7 @@
           "policy": "default",
           "query": "SELECT SUM(diffval) FROM (SELECT NON_NEGATIVE_DIFFERENCE(bytes_received) AS diffval FROM fritzbox WHERE $timeFilter FILL(previous))",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) AS \"bytes\"\n  FROM traffic\n  WHERE time > NOW() - INTERVAL '30 days'\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) AS \"bytes\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -641,7 +641,7 @@
       "type": "stat"
     },
     {
-      "datasource": "IoT",
+      "datasource": "TimescaleDB",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -673,7 +673,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "sum"
           ],
           "fields": "",
           "values": false
@@ -684,6 +684,8 @@
       "pluginVersion": "8.1.1",
       "targets": [
         {
+          "format": "time_series",
+          "group": [],
           "groupBy": [
             {
               "params": [
@@ -699,101 +701,12 @@
             }
           ],
           "measurement": "fritzbox",
+          "metricColumn": "none",
           "orderByTime": "ASC",
           "policy": "default",
           "query": "SELECT SUM(diffval) FROM (SELECT NON_NEGATIVE_DIFFERENCE(bytes_sent) AS diffval FROM fritzbox WHERE $timeFilter FILL(previous))",
           "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "bytes_sent"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "max"
-              }
-            ]
-          ],
-          "tags": []
-        }
-      ],
-      "timeFrom": "30d",
-      "timeShift": null,
-      "title": "Total Sent",
-      "type": "stat"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "TimescaleDB",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 10,
-        "w": 18,
-        "x": 0,
-        "y": 18
-      },
-      "hiddenSeries": false,
-      "id": 2,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": true,
-        "min": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "8.1.1",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "Bytes Received",
-          "format": "time_series",
-          "group": [
-            {
-              "params": [
-                "$__interval",
-                "none"
-              ],
-              "type": "time"
-            }
-          ],
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            }
-          ],
-          "measurement": "fritzbox",
-          "metricColumn": "none",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_received >= lag(bytes_received) OVER w\n        THEN bytes_received - lag(bytes_received) OVER w\n      WHEN lag(bytes_received) OVER w IS NULL THEN NULL\n      ELSE bytes_received\n    END\n  ) / extract(epoch from time - lag(time) OVER w) AS \"bytes_per_second\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
+          "rawSql": "SELECT\n  time,\n  (\n    CASE\n      WHEN bytes_sent >= lag(bytes_sent) OVER w\n        THEN bytes_sent - lag(bytes_sent) OVER w\n      WHEN lag(bytes_sent) OVER w IS NULL THEN NULL\n      ELSE bytes_sent\n    END\n  ) AS \"bytes\"\n  FROM traffic\n  WHERE $__timeFilter(time)\n  WINDOW w AS (ORDER BY time)\n  ORDER BY time",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -803,24 +716,13 @@
                   "bytes_received"
                 ],
                 "type": "column"
-              },
-              {
-                "params": [
-                  "variance"
-                ],
-                "type": "aggregate"
-              },
-              {
-                "params": [
-                  "bytes_received"
-                ],
-                "type": "alias"
               }
             ]
           ],
           "table": "traffic",
           "tags": [],
-          "timeColumn": "time",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
           "where": [
             {
               "name": "$__timeFilter",
@@ -830,46 +732,10 @@
           ]
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
+      "timeFrom": "30d",
       "timeShift": null,
-      "title": "Traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "Bps",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Total Sent",
+      "type": "stat"
     }
   ],
   "refresh": "5s",
@@ -900,5 +766,5 @@
   "timezone": "",
   "title": "Network Copy",
   "uid": "VEYicjv7k",
-  "version": 7
+  "version": 9
 }
